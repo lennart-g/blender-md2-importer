@@ -301,8 +301,7 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
             skin_path = skin_path_unextended+format
             break
     print("used skin path", skin_path)
-    
-    
+
     """ Loads required information for mesh generation and UV mapping from the .md2 file"""
     # Gets name to give to the object and mesh in the outliner
     if not displayed_name:
