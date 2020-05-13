@@ -1,26 +1,26 @@
-#Quake 2 MD2 import add-on for Blender 2.8x
+# Quake 2 MD2 import add-on for Blender 2.8x
 This add-on allows importing .md2 model files. This hasn't been
 natively supported by [Blender](https://www.blender.org/) for
 a decade now. Please note that this add-on is still work
 in progress.
 
-##What can this importer (!) do so far?
+## What can this importer (!) do so far?
 - load an MD2 object to Blender
 - attach a UV map linked in the .md2 file or a custom one
     - supported formats: .png, .jpg, .tga, .pcx
 - load and run keyframe animations
 
-##What is missing?
+## What is missing?
 - proper error handling (proper error handling (some .md2 files store broken skin pathes or ones to files that don't exist))
 - aligning the animation keyframes to the fps used for the different animations
 - .pcx is no longer natively supported by Blender so a different package is used
 that loads all skins as grayscale
 
-##Installation
+## Installation
 - download the script and follow [this guide](https://github.com/rlguy/Blender-FLIP-Fluids/wiki/Addon-Installation-and-Uninstallation)
 - [install PIL (used for loading .pcx files)](https://blender.stackexchange.com/a/122337)
 
-##How to use
+## How to use
 The script can be accessed via File > Import:
 
 ![Run importer](imgs/run_script.png)
