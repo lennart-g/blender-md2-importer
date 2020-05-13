@@ -1,6 +1,6 @@
 bl_info = {
     "name": "Experimental MD2 Importer",
-    "author": "Toolwut",
+    "author": "Lennart G",
     "location": "File > Import > Quake 2 (.md2)",
     "version": (0, 1, 0),
     "blender": (2, 80, 0),
