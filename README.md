@@ -11,7 +11,7 @@ in progress.
 - load and run keyframe animations
 
 ## What is missing?
-- proper error handling (proper error handling (some .md2 files store broken skin pathes or ones to files that don't exist))
+- proper error handling (some .md2 files store broken skin pathes or ones to files that don't exist)
 - aligning the animation keyframes to the fps used for the different animations
 - .pcx is no longer natively supported by Blender so a different package is used
 that loads all skins as grayscale
