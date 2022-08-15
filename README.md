@@ -21,8 +21,9 @@ that loads all skins as grayscale
 
 ## Installation
 
-- download the script and follow [this guide](https://github.com/rlguy/Blender-FLIP-Fluids/wiki/Addon-Installation-and-Uninstallation)
-- [install Pillow (used for loading .pcx files)](https://blender.stackexchange.com/a/122337)
+1. download the script and follow [this guide](https://github.com/rlguy/Blender-FLIP-Fluids/wiki/Addon-Installation-and-Uninstallation). When trying to activate the plugin, blender will show an error stating that the module PIL is missing. Proceed with Step 2.
+2. [install Pillow (used for loading .pcx files)](https://blender.stackexchange.com/a/122337). Replace `pip install scipy` with `pip install pillow`.
+3. Check the plugin activation checkbox again.
 
 ## How to use
 
