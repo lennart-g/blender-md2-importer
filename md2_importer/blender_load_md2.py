@@ -1,11 +1,10 @@
 import bpy
-from PIL import Image
 try:
     from . import MD2
 except ImportError:
     import util.MD2
 try:
-    from prepare_skin_paths import * #test
+    from .prepare_skin_paths import * #test
 except ModuleNotFoundError:
     from util.prepare_skin_paths import *
 import os  # for checking if skin pathes exist
@@ -127,6 +126,8 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
     # and copy pixels into the materials texture
     # otherwise use blender internal image loader (supporting .png, .jpg and .tga)
     if skin_path.endswith(".pcx"):
+        from PIL import Image
+
         skin = Image.open(skin_path)
         skin.load()
         skin = skin.convert("RGBA")
