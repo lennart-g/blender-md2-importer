@@ -14,8 +14,14 @@ if "bpy" in locals():
     try:
         imp.reload(MD2)
     except NameError:
-        import MD2
+        from util import MD2
         imp.reload(MD2)
+
+    try:
+        imp.reload(prepare_skin_paths)
+    except NameError:
+        from util import prepare_skin_paths
+        imp.reload(prepare_skin_paths)
     imp.reload(blender_load_md2)
     print("Reloaded multifiles")
 else:
@@ -33,7 +39,7 @@ The code here calls blender_load_md2
 # invoke() function which calls the file selector.
 import bpy
 from bpy_extras.io_utils import ImportHelper
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator
 
 

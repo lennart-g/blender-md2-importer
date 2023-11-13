@@ -3,7 +3,11 @@ from PIL import Image
 try:
     from . import MD2
 except ImportError:
-    import MD2
+    import util.MD2
+try:
+    from prepare_skin_paths import * #test
+except ModuleNotFoundError:
+    from util.prepare_skin_paths import *
 import os  # for checking if skin pathes exist
 
 
@@ -21,6 +25,9 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
         - Assign skin to mesh
     """
     """ Create MD2 dataclass object """
+    print("md2_path, displayed_name, use_custom_md2_skin, custom_md2_skin_path")
+    print(md2_path, displayed_name, use_custom_md2_skin, custom_md2_skin_path)
+    print(locals())
     # ImageFile.LOAD_TRUNCATED_IMAGES = True # Necessary for loading jpgs with PIL
 
     object_path = md2_path  # Kept for testing purposes
@@ -45,24 +52,10 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
             skin_path = custom_abs_path
     else:
         print("stored path:", my_object.skin_names)  # unchanged path or pathes stored in the MD2
-        # strings are always stored as 64 bytes, so unused bytes are set to '\x00'
-        first_stored_path = my_object.skin_names[0].rstrip("\x00")
-        # only first stored path is used since Digital Paintball 2 only uses that one
-        first_stored_path = first_stored_path.split("/")[-1]
-        print(first_stored_path)
-        # absolute path is formed by using the given md2 object path
-        absolute_first_stored_path = "/".join(md2_path.split("/")[:-1]) + "/" + first_stored_path
-        print(absolute_first_stored_path)
-        skin_path = absolute_first_stored_path
 
-    """ Look for existing file of given name and supported image format """
-    supported_image_formats = [".png", ".jpg", ".jpeg", ".tga", ".pcx"]  # Order doesn't match DP2 image order
-    skin_path_unextended = os.path.splitext(skin_path)[0]  # remove extension (last one)
-    print(skin_path_unextended)
-    for format in supported_image_formats:
-        if os.path.isfile(skin_path_unextended + format):
-            skin_path = skin_path_unextended + format
-            break
+        skin_path = get_path_from_skin_name(object_path, my_object.skin_names[0])
+
+    skin_path = get_existing_skin_path(skin_path)
     print("used skin path", skin_path)
 
     """ Loads required information for mesh generation and UV mapping from the .md2 file"""
