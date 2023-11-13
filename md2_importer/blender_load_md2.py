@@ -10,6 +10,15 @@ except ModuleNotFoundError:
 import os  # for checking if skin pathes exist
 
 
+# from https://blender.stackexchange.com/a/110112
+def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
+
+    def draw(self, context):
+        self.layout.label(text=message)
+
+    bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
+
+
 def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_skin_path):
     """
     This function uses the information from a md2 dataclass into a blender object.
@@ -86,6 +95,30 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
     # Creates mesh by taking first frame's vertices and connects them via indices in tris
     mesh.from_pydata(all_verts[0], [], tris)
 
+
+    """ Create animation for animated models: set keyframe for each vertex in each frame individually """
+    # Create keyframes from first to last frame
+    for i in range(my_object.header.num_frames):
+        for idx, v in enumerate(obj.data.vertices):
+            obj.data.vertices[idx].co = all_verts[i][idx]
+            v.keyframe_insert('co', frame=i * 10)  # parameter index=2 restricts keyframe to dimension
+
+    # insert first keyframe after last one to yield cyclic animation
+    for idx, v in enumerate(obj.data.vertices):
+        obj.data.vertices[idx].co = all_verts[0][idx]
+        v.keyframe_insert('co', frame=60)
+
+    if not skin_path:
+        ShowMessageBox("Defaulting to not assigning any material", "No skin found", "INFO")
+        return {'FINISHED'}  # no idea, seems to be necessary for the UI
+
+    if skin_path.endswith('.pcx'):
+        try:
+            from PIL import Image
+        except ModuleNotFoundError:
+            ShowMessageBox("To load .pcx skin files, see the add-on README for manual PIL installation", "Module PIL not found", "INFO")
+            return {'FINISHED'}  # no idea, seems to be necessary for the UI
+
     """ UV Mapping: Create UV Layer, assign UV coordinates from md2 files for each face to each face's vertices """
     uv_layer = (mesh.uv_layers.new())
     mesh.uv_layers.active = uv_layer
@@ -100,18 +133,6 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
             else:
                 uv_layer.data[loop_idx].uv = uvs_others[my_object.triangles[face_idx].textureIndices[idx]]
 
-    """ Create animation for animated models: set keyframe for each vertex in each frame individually """
-    # Create keyframes from first to last frame
-    for i in range(my_object.header.num_frames):
-        for idx, v in enumerate(obj.data.vertices):
-            obj.data.vertices[idx].co = all_verts[i][idx]
-            v.keyframe_insert('co', frame=i * 10)  # parameter index=2 restricts keyframe to dimension
-
-    # insert first keyframe after last one to yield cyclic animation
-    for idx, v in enumerate(obj.data.vertices):
-        obj.data.vertices[idx].co = all_verts[0][idx]
-        v.keyframe_insert('co', frame=60)
-
     """ Assign skin to mesh: Create material (barely understood copy and paste again) and set the image. 
     Might work by manually setting the textures pixels to the pixels of a PIL.Image if it would actually
     load non-empty .pcx files
@@ -125,9 +146,8 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
     # if only a pcx version of the desired skin exists, load it via PIL
     # and copy pixels into the materials texture
     # otherwise use blender internal image loader (supporting .png, .jpg and .tga)
+    print(f'skin_path: {skin_path}')
     if skin_path.endswith(".pcx"):
-        from PIL import Image
-
         skin = Image.open(skin_path)
         skin.load()
         skin = skin.convert("RGBA")
@@ -138,7 +158,8 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
         texImage.image.pixels = [y for x in skin_rgba for y in x]
     else:
         texImage.image = bpy.data.images.load(skin_path)
-    # again copy and paste
+
+        # again copy and paste
     mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
 
     # Assign it to object
