@@ -1,8 +1,9 @@
 import bpy
-import sys
-from importlib import reload  # required when a self-written module is imported that's edited simultaneously
-from PIL import Image, ImageFile
-from . import MD2
+from PIL import Image
+try:
+    from . import MD2
+except ImportError:
+    import MD2
 import os  # for checking if skin pathes exist
 
 
