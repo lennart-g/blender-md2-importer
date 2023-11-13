@@ -80,7 +80,7 @@ class ImportSomeData(Operator, ImportHelper):
 
 # Only needed if you want to add into a dynamic menu
 def menu_func_import(self, context):
-    self.layout.operator(ImportSomeData.bl_idname, text="TEST .MD2")
+    self.layout.operator(ImportSomeData.bl_idname, text="WIP Quake 2 Model Import (.md2)")
 
 
 
