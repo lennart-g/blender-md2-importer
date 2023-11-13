@@ -1,5 +1,5 @@
 import os
-import MD2
+from util import MD2
 import pytest
 
 
