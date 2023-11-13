@@ -10,19 +10,19 @@ bl_info = {
 # To support reload properly, try to access a package var,
 # if it's there, reload everything
 if "bpy" in locals():
-    import imp
+    import importlib
     try:
-        imp.reload(MD2)
+        importlib.reload(MD2)
     except NameError:
         from util import MD2
-        imp.reload(MD2)
+        importlib.reload(MD2)
 
     try:
-        imp.reload(prepare_skin_paths)
+        importlib.reload(prepare_skin_paths)
     except NameError:
         from util import prepare_skin_paths
-        imp.reload(prepare_skin_paths)
-    imp.reload(blender_load_md2)
+        importlib.reload(prepare_skin_paths)
+    importlib.reload(blender_load_md2)
     print("Reloaded multifiles")
 else:
     from . import blender_load_md2
