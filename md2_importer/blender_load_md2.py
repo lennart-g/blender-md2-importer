@@ -155,7 +155,9 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
         print("important", skin_rgba[:40])
         print("path:", skin_path)
         texImage.image = bpy.data.images.new("MyImage", width=skin.size[0], height=skin.size[1])
-        texImage.image.pixels = [y for x in skin_rgba for y in x]
+        tmp = [y for x in skin_rgba for y in x]
+        max_val = max(tmp)
+        texImage.image.pixels = [x / max_val for x in tmp]
     else:
         texImage.image = bpy.data.images.load(skin_path)
 
