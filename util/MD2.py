@@ -175,9 +175,11 @@ def load_header(file_bytes):
     header = md2_t(*arguments)
     # Verify MD2
     if not header.ident == 844121161 or not header.version == 8:
-        print(f"Error: File type is not MD2. Ident or version not matching")
-        print(f'Ident: {file_bytes[:4].decode("ascii", "ignore")} should be "IDP2"')
-        print(f"Version: {header.version} should be 8")
+        raise ValueError(
+            f"Error: File type is not MD2. Ident or version not matching. "
+            f'Ident: {file_bytes[:4].decode("ascii", "ignore")} should be "IDP2". '
+            f"Version: {header.version} should be 8"
+        )
     return header
 
 

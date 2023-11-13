@@ -1,9 +1,22 @@
 import bpy
-import sys
-from importlib import reload  # required when a self-written module is imported that's edited simultaneously
-from PIL import Image, ImageFile
-from . import MD2
+try:
+    from . import MD2
+except ImportError:
+    import util.MD2
+try:
+    from .prepare_skin_paths import * #test
+except ModuleNotFoundError:
+    from util.prepare_skin_paths import *
 import os  # for checking if skin pathes exist
+
+
+# from https://blender.stackexchange.com/a/110112
+def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
+
+    def draw(self, context):
+        self.layout.label(text=message)
+
+    bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
 
 
 def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_skin_path):
@@ -20,6 +33,9 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
         - Assign skin to mesh
     """
     """ Create MD2 dataclass object """
+    print("md2_path, displayed_name, use_custom_md2_skin, custom_md2_skin_path")
+    print(md2_path, displayed_name, use_custom_md2_skin, custom_md2_skin_path)
+    print(locals())
     # ImageFile.LOAD_TRUNCATED_IMAGES = True # Necessary for loading jpgs with PIL
 
     object_path = md2_path  # Kept for testing purposes
@@ -44,24 +60,10 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
             skin_path = custom_abs_path
     else:
         print("stored path:", my_object.skin_names)  # unchanged path or pathes stored in the MD2
-        # strings are always stored as 64 bytes, so unused bytes are set to '\x00'
-        first_stored_path = my_object.skin_names[0].rstrip("\x00")
-        # only first stored path is used since Digital Paintball 2 only uses that one
-        first_stored_path = first_stored_path.split("/")[-1]
-        print(first_stored_path)
-        # absolute path is formed by using the given md2 object path
-        absolute_first_stored_path = "/".join(md2_path.split("/")[:-1]) + "/" + first_stored_path
-        print(absolute_first_stored_path)
-        skin_path = absolute_first_stored_path
 
-    """ Look for existing file of given name and supported image format """
-    supported_image_formats = [".png", ".jpg", ".jpeg", ".tga", ".pcx"]  # Order doesn't match DP2 image order
-    skin_path_unextended = os.path.splitext(skin_path)[0]  # remove extension (last one)
-    print(skin_path_unextended)
-    for format in supported_image_formats:
-        if os.path.isfile(skin_path_unextended + format):
-            skin_path = skin_path_unextended + format
-            break
+        skin_path = get_path_from_skin_name(object_path, my_object.skin_names[0])
+
+    skin_path = get_existing_skin_path(skin_path)
     print("used skin path", skin_path)
 
     """ Loads required information for mesh generation and UV mapping from the .md2 file"""
@@ -93,6 +95,30 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
     # Creates mesh by taking first frame's vertices and connects them via indices in tris
     mesh.from_pydata(all_verts[0], [], tris)
 
+
+    """ Create animation for animated models: set keyframe for each vertex in each frame individually """
+    # Create keyframes from first to last frame
+    for i in range(my_object.header.num_frames):
+        for idx, v in enumerate(obj.data.vertices):
+            obj.data.vertices[idx].co = all_verts[i][idx]
+            v.keyframe_insert('co', frame=i * 10)  # parameter index=2 restricts keyframe to dimension
+
+    # insert first keyframe after last one to yield cyclic animation
+    for idx, v in enumerate(obj.data.vertices):
+        obj.data.vertices[idx].co = all_verts[0][idx]
+        v.keyframe_insert('co', frame=60)
+
+    if not skin_path:
+        ShowMessageBox("Defaulting to not assigning any material", "No skin found", "INFO")
+        return {'FINISHED'}  # no idea, seems to be necessary for the UI
+
+    if skin_path.endswith('.pcx'):
+        try:
+            from PIL import Image
+        except ModuleNotFoundError:
+            ShowMessageBox("To load .pcx skin files, see the add-on README for manual PIL installation", "Module PIL not found", "INFO")
+            return {'FINISHED'}  # no idea, seems to be necessary for the UI
+
     """ UV Mapping: Create UV Layer, assign UV coordinates from md2 files for each face to each face's vertices """
     uv_layer = (mesh.uv_layers.new())
     mesh.uv_layers.active = uv_layer
@@ -107,18 +133,6 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
             else:
                 uv_layer.data[loop_idx].uv = uvs_others[my_object.triangles[face_idx].textureIndices[idx]]
 
-    """ Create animation for animated models: set keyframe for each vertex in each frame individually """
-    # Create keyframes from first to last frame
-    for i in range(my_object.header.num_frames):
-        for idx, v in enumerate(obj.data.vertices):
-            obj.data.vertices[idx].co = all_verts[i][idx]
-            v.keyframe_insert('co', frame=i * 10)  # parameter index=2 restricts keyframe to dimension
-
-    # insert first keyframe after last one to yield cyclic animation
-    for idx, v in enumerate(obj.data.vertices):
-        obj.data.vertices[idx].co = all_verts[0][idx]
-        v.keyframe_insert('co', frame=60)
-
     """ Assign skin to mesh: Create material (barely understood copy and paste again) and set the image. 
     Might work by manually setting the textures pixels to the pixels of a PIL.Image if it would actually
     load non-empty .pcx files
@@ -132,6 +146,7 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
     # if only a pcx version of the desired skin exists, load it via PIL
     # and copy pixels into the materials texture
     # otherwise use blender internal image loader (supporting .png, .jpg and .tga)
+    print(f'skin_path: {skin_path}')
     if skin_path.endswith(".pcx"):
         skin = Image.open(skin_path)
         skin.load()
@@ -140,10 +155,13 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
         print("important", skin_rgba[:40])
         print("path:", skin_path)
         texImage.image = bpy.data.images.new("MyImage", width=skin.size[0], height=skin.size[1])
-        texImage.image.pixels = [y for x in skin_rgba for y in x]
+        tmp = [y for x in skin_rgba for y in x]
+        max_val = max(tmp)
+        texImage.image.pixels = [x / max_val for x in tmp]
     else:
         texImage.image = bpy.data.images.load(skin_path)
-    # again copy and paste
+
+        # again copy and paste
     mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
 
     # Assign it to object

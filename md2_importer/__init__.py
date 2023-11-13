@@ -2,7 +2,7 @@ bl_info = {
     "name": "Experimental MD2 Importer",
     "author": "Lennart G",
     "location": "File > Import > Quake 2 (.md2)",
-    "version": (0, 2, 0),
+    "version": (0, 3, 0),
     "blender": (2, 80, 0),
     "category": "Import-Export"
 }
@@ -10,13 +10,23 @@ bl_info = {
 # To support reload properly, try to access a package var,
 # if it's there, reload everything
 if "bpy" in locals():
-  import imp
-  imp.reload(MD2)
-  imp.reload(blender_load_md2)
-  print("Reloaded multifiles")
+    import imp
+    try:
+        imp.reload(MD2)
+    except NameError:
+        from util import MD2
+        imp.reload(MD2)
+
+    try:
+        imp.reload(prepare_skin_paths)
+    except NameError:
+        from util import prepare_skin_paths
+        imp.reload(prepare_skin_paths)
+    imp.reload(blender_load_md2)
+    print("Reloaded multifiles")
 else:
-  from . import blender_load_md2
-  print("Imported multifiles")
+    from . import blender_load_md2
+    print("Imported multifiles")
 
 """
 This part is required for the UI, to make the Addon appear under File > Import once it's
@@ -29,7 +39,7 @@ The code here calls blender_load_md2
 # invoke() function which calls the file selector.
 import bpy
 from bpy_extras.io_utils import ImportHelper
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty
 from bpy.types import Operator
 
 
