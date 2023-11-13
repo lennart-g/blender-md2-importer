@@ -4,8 +4,8 @@ import shutil
 # files to include in the output zip file
 files = [
     "MD2.py",
-    "io_import_md2/__init__.py",
-    "io_import_md2/blender_load_md2.py"
+    "md2_importer/__init__.py",
+    "md2_importer/blender_load_md2.py"
 ]
 
 # intermediary location for the directory to be zipped
