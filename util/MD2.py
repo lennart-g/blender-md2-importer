@@ -20,7 +20,7 @@ class vec3_t:
 
 @dataclass
 class vertex_t:  # 4 bytes in total
-    v: list  # unsigned char (in python 1 byte int), list of len 3, compressed vertex
+    v: List[float]  # unsigned char (in python 1 byte int), list of len 3, compressed vertex
     lightnormalindex: int  # unsigned char, index to a normal vector for the lighting
 
 
@@ -96,7 +96,7 @@ Functions used to create an MD2 Object
 """
 
 
-def load_gl_commands(gl_command_bytes):
+def load_gl_commands(gl_command_bytes: bytes) -> List[glCommand_t]:
     """
     Loads gl_commands which are a list of GL_TRIANGLE_STRIP and GL_TRIANGLE_FAN calls that reduce
     fps
@@ -129,7 +129,7 @@ def load_gl_commands(gl_command_bytes):
     return gl_commands
 
 
-def load_triangles(triangle_bytes, header):
+def load_triangles(triangle_bytes: bytes, header: md2_t) -> List[triangle_t]:
     """
     Creates basic list of triangle dataclasses which contain indices to vertices
     :param triangle_bytes: bytes from md2 file belonging to triangles lump
@@ -145,7 +145,7 @@ def load_triangles(triangle_bytes, header):
     return triangles
 
 
-def load_frames(frames_bytes, header):
+def load_frames(frames_bytes: bytes, header: md2_t) -> List[frame_t]:
     """
     Loads frames
     :param frames_bytes: bytes from md2 file belonging to frames lump
@@ -195,7 +195,7 @@ def load_frames(frames_bytes, header):
     return frames
 
 
-def load_header(file_bytes):
+def load_header(file_bytes: bytes) -> md2_t:
     """
     Creates header dataclass object
     :param file_bytes: bytes from md2 file belonging to header
@@ -214,7 +214,7 @@ def load_header(file_bytes):
     return header
 
 
-def load_texture_coordinates(texture_coordinate_bytes, header):
+def load_texture_coordinates(texture_coordinate_bytes: bytes, header: md2_t) -> List[textureCoordinate_t]:
     """
     Loads UV (in Q2 term ST) coordinates
     :param texture_coordinate_bytes:
@@ -228,7 +228,7 @@ def load_texture_coordinates(texture_coordinate_bytes, header):
     return texture_coordinates
 
 
-def load_file(path):
+def load_file(path: str) -> md2_object:
     """
     Master function returning one dataclass object containing all the MD2 information
     :param path:

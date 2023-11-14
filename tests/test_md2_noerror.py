@@ -3,7 +3,7 @@ from util import MD2
 import pytest
 
 
-def test_models():
+def test_models() -> None:
     data_dir = "tests/data"
     models = os.listdir(data_dir)
     models = [x for x in models if x.lower().endswith(".md2")]
@@ -13,6 +13,6 @@ def test_models():
     assert True
 
 
-def test_wrong_format():
+def test_wrong_format() -> None:
     with pytest.raises(ValueError):
         MD2.load_file('tests/data/car.jpg')

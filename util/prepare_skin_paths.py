@@ -1,7 +1,8 @@
 import os
+from typing import Union
 
 
-def get_path_from_skin_name(md2_path: str, skin_name: str):
+def get_path_from_skin_name(md2_path: str, skin_name: str) -> str:
     # strings are always stored as 64 bytes, so unused bytes are set to '\x00'
     first_stored_path = skin_name.rstrip("\x00")
     # only first stored path is used since Digital Paintball 2 only uses that one
@@ -15,7 +16,7 @@ def get_path_from_skin_name(md2_path: str, skin_name: str):
     return skin_path
 
 
-def get_existing_skin_path(skin_path: str):
+def get_existing_skin_path(skin_path: str) -> Union[str, None]:
     """
     Replaces the skin path extension with the one of an existing file of the same name.
     """
@@ -30,3 +31,4 @@ def get_existing_skin_path(skin_path: str):
         if os.path.isfile(full_path):
             skin_path = skin_path_unextended + format
             return skin_path
+    return None
