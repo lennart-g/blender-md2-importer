@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import struct
-from typing import List
+from typing import List, Union
 
 """
 This part is used to load an md2 file into a MD2 dataclass object
@@ -64,8 +64,8 @@ class triangle_t:  # 12 bytes each
 
 @dataclass
 class textureCoordinate_t:  # 4 bytes each
-    s: int  # short
-    t: int  # short
+    s: Union[int, float]  # stored as short, subsequently divided by skinwidth -> float
+    t: Union[int, float]  # stored as short, subsequently divided by skinheight -> float
 
 
 @dataclass
