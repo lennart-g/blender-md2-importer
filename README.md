@@ -9,6 +9,13 @@ requests are welcome!**
 Developed and tested with Blender 3.6.5 and Python 3.10.13.
 Older versions might still (partially) work.
 
+1. [What can this importer (!) do so far?](#what-can-this-importer--do-so-far)
+2. [What is missing?](#what-is-missing)
+3. [Releases](#releases)
+4. [Installation](#installation)
+6. [How to use](#how-to-use)
+5. [Development](#development)
+
 ## What can this importer (!) do so far?
 
 - load an MD2 object to Blender
@@ -39,10 +46,6 @@ Replace `pip install scipy` with `pip install pillow`.
 On old Blender / Python versions, an upgrade of pip might be necessary.
 2. Check the plugin activation checkbox again.
 
-## Development
-Follow [these instructions](https://github.com/lennart-g/bsp_hacking/blob/master/docs/blender_importer.md)
-with adjustments for this repository.
-
 ## How to use
 
 The script can be accessed via File > Import:
@@ -71,3 +74,30 @@ and adding new UV maps. The current importer does not
 support exporting a modified UV layout though.
 
 ![UV editing](imgs/texture_paint.png)
+
+## Development
+Follow [these instructions](https://github.com/lennart-g/bsp_hacking/blob/master/docs/blender_importer.md)
+with adjustments for this repository.
+
+### Pre-release quality assurance
+#### Code style:
+```bash
+flake8 .
+```
+
+#### Automated tests:
+```bash
+python3 -m pytest .
+```
+
+#### Manual testing with the built add-on archive:
+1. Delete and re-extract Blender from the downloaded archive
+2. Install and enable the add-on from the built archive
+3. Load the .md2 files from the archive (**ensure being in material preview mode**)
+   1. `bigleaf2.md2` should by default load `leaf02.jpg`
+   2. `car.md2` should by default not load a skin
+   3. `car.md2` should load `car.jpg` when "Load custom skin" is checked
+4. Loading `doomguy.md2` (not included) which requires `doomguy.pcx`
+should show a message that `.pcx` loading failed.
+5. Install Pillow with the linked instructions
+6. Load `doomguy.md2` again
