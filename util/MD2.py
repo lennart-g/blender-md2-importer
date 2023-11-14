@@ -214,7 +214,8 @@ def load_header(file_bytes: bytes) -> md2_t:
     return header
 
 
-def load_texture_coordinates(texture_coordinate_bytes: bytes, header: md2_t) -> List[textureCoordinate_t]:
+def load_texture_coordinates(texture_coordinate_bytes: bytes, header: md2_t)\
+        -> List[textureCoordinate_t]:
     """
     Loads UV (in Q2 term ST) coordinates
     :param texture_coordinate_bytes:
