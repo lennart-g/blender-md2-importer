@@ -20,7 +20,8 @@ def get_existing_skin_path(skin_path: str):
     Replaces the skin path extension with the one of an existing file of the same name.
     """
     """ Look for existing file of given name and supported image format """
-    supported_image_formats = [".png", ".jpg", ".jpeg", ".tga", ".pcx"]  # Order doesn't match DP2 image order
+    # Order doesn't match DP2 image order
+    supported_image_formats = [".png", ".jpg", ".jpeg", ".tga", ".pcx"]
     skin_path_unextended = os.path.splitext(skin_path)[0]  # remove extension (last one)
     print(f'skin_path_unextended: {skin_path_unextended}')
     for format in supported_image_formats:

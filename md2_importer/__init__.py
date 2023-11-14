@@ -22,6 +22,7 @@ if "bpy" in locals():
     except NameError:
         from util import prepare_skin_paths
         importlib.reload(prepare_skin_paths)
+    from . import blender_load_md2
     importlib.reload(blender_load_md2)
     print("Reloaded multifiles")
 else:
@@ -37,51 +38,61 @@ The code here calls blender_load_md2
 
 # ImportHelper is a helper class, defines filename and
 # invoke() function which calls the file selector.
-import bpy
-from bpy_extras.io_utils import ImportHelper
-from bpy.props import StringProperty, BoolProperty
-from bpy.types import Operator
+import bpy  # noqa: E402
+from bpy_extras.io_utils import ImportHelper  # noqa: E402
 
 
-class ImportSomeData(Operator, ImportHelper):
+class ImportSomeData(bpy.types.Operator, ImportHelper):
     """Loads a Quake 2 MD2 File"""
-    bl_idname = "import_md2.some_data"  # important since its how bpy.ops.import_test.some_data is constructed
+    # important since its how bpy.ops.import_test.some_data is constructed
+    bl_idname = "import_md2.some_data"
     bl_label = "Import MD2"
 
-    ## ImportHelper mixin class uses this
+    # ImportHelper mixin class uses this
     # filename_ext = ".md2"
 
-    filter_glob: StringProperty(
-        default="*.*",  # only shows md2 files in opening screen
-        options={'HIDDEN'},
-        maxlen=255,  # Max internal buffer length, longer would be clamped.
+    # the following type annotations ignore linter complaints because the properties are
+    # defined in C code and thus not accessible to the linter
+    filter_glob: bpy.props.StringProperty(
+        default="*.*",  # only shows md2 files in opening screen  # noqa: F722
+        options={'HIDDEN'},  # noqa: F722 F821
+        maxlen=255,  # Max internal buffer length, longer would be clamped.  # noqa: F722
     )
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    displayed_name: StringProperty(name="Displayed name",
-                                             description="What this model should be named in the outliner\ngood for default file names like tris.md2",
-                                             default="",
-                                             maxlen=1024)
+    displayed_name: bpy.props.StringProperty(
+        name="Displayed name",  # noqa: F722
+        description=(
+            "What this model should be named in the outliner\n"  # noqa: F722
+            "good for default file names like tris.md2"
+        ),
+        default="",  # noqa: F722
+        maxlen=1024
+    )
 
-    use_custom_skin: BoolProperty(
-        name="Load custom skin: ",
-        description="To load a skin from a path different to the one stored in the .md2.",
+    use_custom_skin: bpy.props.BoolProperty(
+        name="Load custom skin: ",  # noqa: F722
+        description=(
+            "To load a skin from a path different to the one stored in the .md2."  # noqa: F722
+        ),
         default=False,
     )
-    custom_skin_path: StringProperty(name="Optional: skin path",
-                                               description="If load custom skin checked: path to skin to load.",
-                                               default="",
-                                               maxlen=1024)
+    custom_skin_path: bpy.props.StringProperty(
+        name="Optional: skin path",  # noqa: F722
+        description="If load custom skin checked: path to skin to load.",  # noqa: F722
+        default="",  # noqa: F722
+        maxlen=1024,
+    )
 
     def execute(self, context):
-        return blender_load_md2.blender_load_md2(self.filepath, self.displayed_name, self.use_custom_skin, self.custom_skin_path)
+        return blender_load_md2.blender_load_md2(
+            self.filepath, self.displayed_name, self.use_custom_skin, self.custom_skin_path)
 
 
 # Only needed if you want to add into a dynamic menu
 def menu_func_import(self, context):
     self.layout.operator(ImportSomeData.bl_idname, text="WIP Quake 2 Model Import (.md2)")
-
 
 
 # called when addon is activated (adds script to File > Import

@@ -2,21 +2,21 @@ import bpy
 try:
     from . import MD2
 except ImportError:
-    import util.MD2
+    import util.MD2  # noqa: F401
 try:
-    from .prepare_skin_paths import * #test
+    from .prepare_skin_paths import get_path_from_skin_name, get_existing_skin_path
 except ModuleNotFoundError:
-    from util.prepare_skin_paths import *
+    from util.prepare_skin_paths import get_path_from_skin_name, get_existing_skin_path
 import os  # for checking if skin pathes exist
 
 
 # from https://blender.stackexchange.com/a/110112
-def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
+def ShowMessageBox(message="", title="Message Box", icon='INFO'):
 
     def draw(self, context):
         self.layout.label(text=message)
 
-    bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
+    bpy.context.window_manager.popup_menu(draw, title=title, icon=icon)
 
 
 def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_skin_path):
@@ -42,18 +42,22 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
     # A dataclass containing all information stored in a .md2 file
     my_object = MD2.load_file(object_path)
 
-    """ Create skin path. By default, the one stored inside of the MD2 is used. Some engines like the Digital Paintball 2 one
-    check for any image file with that path disregarding the file extension. For a given custom path, it is checked
-    whether it (apparently) is an absolute or relative (to the MD2) path.
+    """ Create skin path. By default, the one stored inside of the MD2 is used. Some engines like
+    the Digital Paintball 2 one check for any image file with that path disregarding the file
+    extension. For a given custom path, it is checked whether it (apparently) is an absolute or
+    relative (to the MD2) path.
     """
     """ get absolute skin path based on input / the one stored inside of the MD2 """
-    # check box must be checked (alternatively it could be checked if the input field was empty or not ...)
+    # check box must be checked
+    # (alternatively it could be checked if the input field was empty or not ...)
     if use_custom_md2_skin:
-        # an absolute path is recognized by usage of '/' (obviously not perfect detection of an absolute path)
+        # an absolute path is recognized by usage of '/'
+        # (obviously not perfect detection of an absolute path)
         if os.path.isabs(custom_md2_skin_path):
             skin_path = custom_md2_skin_path
         else:
-            # take everything before last '/' of MD2 path, add '/' and path of skin in same directory
+            # take everything before last '/' of MD2 path,
+            # add '/' and path of skin in same directory
             # custom_abs_path = "/".join(md2_path.split("/")[:-1]) + "/" + custom_md2_skin_path
             custom_abs_path = os.path.join(os.path.split(md2_path)[0], custom_md2_skin_path)
             print(custom_abs_path)
@@ -76,7 +80,8 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
         object_name = [displayed_name]
 
     # List of vertices [x,y,z] for all frames extracted from the md2 object
-    all_verts = [[x.v for x in my_object.frames[y].verts] for y in range(my_object.header.num_frames)]
+    all_verts = \
+        [[x.v for x in my_object.frames[y].verts] for y in range(my_object.header.num_frames)]
     # List of vertex indices forming a triangular face
     tris = ([x.vertexIndices for x in my_object.triangles])
     # uv coordinates (in q2 terms st coordinates) for projecting the skin on the model's faces
@@ -85,7 +90,8 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
     uvs_others = ([(x.s, 1 - x.t) for x in my_object.texture_coordinates])
     # blender uv coordinate system originates at lower left
 
-    """ Lots of code (copy and pasted) that creates a mesh and adds it to the scene collection/outlines """
+    """ Lots of code (copy and pasted) that creates a mesh and
+    adds it to the scene collection/outlines """
     mesh = bpy.data.meshes.new(*object_name)  # add the new mesh, * extracts string from list
     obj = bpy.data.objects.new(mesh.name, mesh)
     col = bpy.data.collections.get("Collection")
@@ -95,13 +101,14 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
     # Creates mesh by taking first frame's vertices and connects them via indices in tris
     mesh.from_pydata(all_verts[0], [], tris)
 
-
-    """ Create animation for animated models: set keyframe for each vertex in each frame individually """
+    """ Create animation for animated models:
+    set keyframe for each vertex in each frame individually """
     # Create keyframes from first to last frame
     for i in range(my_object.header.num_frames):
         for idx, v in enumerate(obj.data.vertices):
             obj.data.vertices[idx].co = all_verts[i][idx]
-            v.keyframe_insert('co', frame=i * 10)  # parameter index=2 restricts keyframe to dimension
+            # parameter index=2 restricts keyframe to dimension
+            v.keyframe_insert('co', frame=i * 10)
 
     # insert first keyframe after last one to yield cyclic animation
     for idx, v in enumerate(obj.data.vertices):
@@ -116,26 +123,34 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
         try:
             from PIL import Image
         except ModuleNotFoundError:
-            ShowMessageBox("To load .pcx skin files, see the add-on README for manual PIL installation", "Module PIL not found", "INFO")
+            ShowMessageBox(
+                "To load .pcx skin files, see the add-on README for manual PIL installation",
+                "Module PIL not found",
+                "INFO")
             return {'FINISHED'}  # no idea, seems to be necessary for the UI
 
-    """ UV Mapping: Create UV Layer, assign UV coordinates from md2 files for each face to each face's vertices """
+    """ UV Mapping: Create UV Layer, assign UV coordinates from md2 files
+     for each face to each face's vertices """
     uv_layer = (mesh.uv_layers.new())
     mesh.uv_layers.active = uv_layer
 
-    # add uv coordinates to each polygon (here: triangle since md2 only stores vertices and triangles)
+    # add uv coordinates to each polygon
+    # (here: triangle since md2 only stores vertices and triangles)
     # note: faces and vertices are stored exactly in the order they were added
     for face_idx, face in enumerate(mesh.polygons):
         for idx, (vert_idx, loop_idx) in enumerate(zip(face.vertices, face.loop_indices)):
             if skin_path.endswith(".pcx"):
                 print("PCX LOADED")
-                uv_layer.data[loop_idx].uv = uvs_pcx[my_object.triangles[face_idx].textureIndices[idx]]
+                uv_layer.data[loop_idx].uv = \
+                    uvs_pcx[my_object.triangles[face_idx].textureIndices[idx]]
             else:
-                uv_layer.data[loop_idx].uv = uvs_others[my_object.triangles[face_idx].textureIndices[idx]]
+                uv_layer.data[loop_idx].uv = \
+                    uvs_others[my_object.triangles[face_idx].textureIndices[idx]]
 
-    """ Assign skin to mesh: Create material (barely understood copy and paste again) and set the image. 
-    Might work by manually setting the textures pixels to the pixels of a PIL.Image if it would actually
-    load non-empty .pcx files
+    """ Assign skin to mesh: Create material (barely understood copy and paste again)
+    and set the image.
+    Might work by manually setting the textures pixels to the pixels of a PIL.Image if it would
+    actually load non-empty .pcx files
     idea/TODO: Write an own pcx loader from scratch ... """
     # Creating material and corresponding notes (see Shading tab)
     mat = bpy.data.materials.new(name="md2_material")
@@ -171,5 +186,3 @@ def blender_load_md2(md2_path, displayed_name, use_custom_md2_skin, custom_md2_s
         obj.data.materials.append(mat)
     print("YAY NO ERRORS!!")
     return {'FINISHED'}  # no idea, seems to be necessary for the UI
-
-

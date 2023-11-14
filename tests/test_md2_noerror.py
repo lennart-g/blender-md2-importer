@@ -16,4 +16,3 @@ def test_models():
 def test_wrong_format():
     with pytest.raises(ValueError):
         MD2.load_file('tests/data/car.jpg')
-
