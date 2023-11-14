@@ -85,6 +85,13 @@ with adjustments for this repository.
 flake8 .
 ```
 
+#### Type checking:
+This ignores the `md2_importer` directory as there
+are no stubs available for the Blender API (bpy).
+```bash
+mypy . --strict
+```
+
 #### Automated tests:
 ```bash
 python3 -m pytest .
